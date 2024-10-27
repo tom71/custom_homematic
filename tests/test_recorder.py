@@ -11,7 +11,6 @@ from pytest_homeassistant_custom_component.components.recorder.common import (
 from custom_components.homematicip_local.const import EVENT_MODEL
 from custom_components.homematicip_local.generic_entity import (
     ATTR_ADDRESS,
-    ATTR_ENTITY_TYPE,
     ATTR_FUNCTION,
     ATTR_INTERFACE_ID,
     ATTR_MODEL,
@@ -19,7 +18,6 @@ from custom_components.homematicip_local.generic_entity import (
     ATTR_PARAMETER,
     ATTR_VALUE_STATE,
     HmEntityState,
-    HmEntityType,
 )
 from custom_components.homematicip_local.update import ATTR_FIRMWARE_UPDATE_STATE
 from homeassistant.components.recorder.history import get_significant_states
@@ -36,7 +34,7 @@ TEST_DEVICES: dict[str, str] = {
 # pylint: disable=protected-access
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def no_test_generic_entity_un_recorded(
     factory_with_recorder: helper.Factory,
 ) -> None:
@@ -46,13 +44,12 @@ async def no_test_generic_entity_un_recorded(
     entity_name = "HmIP-SWDO-I_VCU5864966 "
 
     hass, control = await factory_with_recorder.setup_environment(TEST_DEVICES)
-    ha_state, hm_entity = helper.get_and_check_state(
+    ha_state, data_point = helper.get_and_check_state(
         hass=hass, control=control, entity_id=entity_id, entity_name=entity_name
     )
 
     assert ha_state.state == STATE_OFF
     assert ha_state.attributes[ATTR_ADDRESS] == "VCU5864966:1"
-    assert ha_state.attributes[ATTR_ENTITY_TYPE] == HmEntityType.GENERIC
     assert ha_state.attributes[ATTR_FUNCTION] is None
     assert ha_state.attributes[ATTR_INTERFACE_ID] == "CentralTest-BidCos-RF"
     assert ha_state.attributes[ATTR_MODEL] == "HmIP-SWDO-I"
@@ -73,7 +70,6 @@ async def no_test_generic_entity_un_recorded(
         for state in entity_states:
             if state.entity_id == entity_id:
                 assert ATTR_ADDRESS not in state.attributes
-                assert ATTR_ENTITY_TYPE not in state.attributes
                 assert ATTR_FUNCTION not in state.attributes
                 assert ATTR_INTERFACE_ID not in state.attributes
                 assert ATTR_MODEL not in state.attributes
@@ -82,7 +78,7 @@ async def no_test_generic_entity_un_recorded(
                 break
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def no_test_event_entity_un_recorded(
     factory_with_recorder: helper.Factory,
 ) -> None:
@@ -92,7 +88,7 @@ async def no_test_event_entity_un_recorded(
     entity_name = "HmIP-BSM_VCU2128127 ch1"
 
     hass, control = await factory_with_recorder.setup_environment(TEST_DEVICES)
-    ha_state, hm_entity = helper.get_and_check_state(
+    ha_state, data_point = helper.get_and_check_state(
         hass=hass, control=control, entity_id=entity_id, entity_name=entity_name
     )
     assert ha_state.state == STATE_UNKNOWN
@@ -119,7 +115,7 @@ async def no_test_event_entity_un_recorded(
                 break
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def no_test_update_entity_un_recorded(
     factory_with_recorder: helper.Factory,
 ) -> None:
@@ -129,7 +125,7 @@ async def no_test_update_entity_un_recorded(
     entity_name = "HmIP-SWDO-I_VCU5864966 Update"
 
     hass, control = await factory_with_recorder.setup_environment(TEST_DEVICES)
-    ha_state, hm_entity = helper.get_and_check_state(
+    ha_state, data_point = helper.get_and_check_state(
         hass=hass, control=control, entity_id=entity_id, entity_name=entity_name
     )
 
@@ -153,7 +149,7 @@ async def no_test_update_entity_un_recorded(
                 break
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def no_test_sysvar_entity_un_recorded(
     factory_with_recorder: helper.Factory,
 ) -> None:
@@ -162,7 +158,7 @@ async def no_test_sysvar_entity_un_recorded(
     entity_name = "CentralTest sv_logic"
 
     hass, control = await factory_with_recorder.setup_environment({}, add_sysvars=True)
-    ha_state, hm_entity = helper.get_and_check_state(
+    ha_state, data_point = helper.get_and_check_state(
         hass=hass, control=control, entity_id=entity_id, entity_name=entity_name
     )
 

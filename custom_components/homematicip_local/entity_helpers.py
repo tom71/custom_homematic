@@ -9,10 +9,10 @@ from enum import StrEnum
 import logging
 from typing import Final
 
-from hahomematic.const import HmPlatform
-from hahomematic.platforms.custom import CustomEntity
-from hahomematic.platforms.generic import GenericEntity
-from hahomematic.platforms.hub import GenericHubEntity
+from hahomematic.const import DataPointCategory
+from hahomematic.model.custom import CustomDataPoint
+from hahomematic.model.generic import GenericDataPoint
+from hahomematic.model.hub import GenericHubDataPoint
 from hahomematic.support import element_matches_key
 
 from homeassistant.components.binary_sensor import (
@@ -55,7 +55,7 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.typing import UNDEFINED, UndefinedType
 
-from .support import HmGenericEntity
+from .support import HmGenericDataPoint
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -780,58 +780,58 @@ _LOCK_DESCRIPTIONS_BY_POSTFIX: Mapping[str | tuple[str, ...], EntityDescription]
 }
 
 _ENTITY_DESCRIPTION_BY_DEVICE: Mapping[
-    HmPlatform, Mapping[str | tuple[str, ...], EntityDescription]
+    DataPointCategory, Mapping[str | tuple[str, ...], EntityDescription]
 ] = {
-    HmPlatform.COVER: _COVER_DESCRIPTIONS_BY_DEVICE,
-    HmPlatform.SIREN: _SIREN_DESCRIPTIONS_BY_DEVICE,
-    HmPlatform.SWITCH: _SWITCH_DESCRIPTIONS_BY_DEVICE,
+    DataPointCategory.COVER: _COVER_DESCRIPTIONS_BY_DEVICE,
+    DataPointCategory.SIREN: _SIREN_DESCRIPTIONS_BY_DEVICE,
+    DataPointCategory.SWITCH: _SWITCH_DESCRIPTIONS_BY_DEVICE,
 }
 
 _ENTITY_DESCRIPTION_BY_PARAM: Mapping[
-    HmPlatform, Mapping[str | tuple[str, ...], EntityDescription]
+    DataPointCategory, Mapping[str | tuple[str, ...], EntityDescription]
 ] = {
-    HmPlatform.BINARY_SENSOR: _BINARY_SENSOR_DESCRIPTIONS_BY_PARAM,
-    HmPlatform.BUTTON: _BUTTOM_DESCRIPTIONS_BY_PARAM,
-    HmPlatform.NUMBER: _NUMBER_DESCRIPTIONS_BY_PARAM,
-    HmPlatform.SELECT: _SELECT_DESCRIPTIONS_BY_PARAM,
-    HmPlatform.SENSOR: _SENSOR_DESCRIPTIONS_BY_PARAM,
-    HmPlatform.SWITCH: _SWITCH_DESCRIPTIONS_BY_PARAM,
+    DataPointCategory.BINARY_SENSOR: _BINARY_SENSOR_DESCRIPTIONS_BY_PARAM,
+    DataPointCategory.BUTTON: _BUTTOM_DESCRIPTIONS_BY_PARAM,
+    DataPointCategory.NUMBER: _NUMBER_DESCRIPTIONS_BY_PARAM,
+    DataPointCategory.SELECT: _SELECT_DESCRIPTIONS_BY_PARAM,
+    DataPointCategory.SENSOR: _SENSOR_DESCRIPTIONS_BY_PARAM,
+    DataPointCategory.SWITCH: _SWITCH_DESCRIPTIONS_BY_PARAM,
 }
 
 _ENTITY_DESCRIPTION_BY_POSTFIX: Mapping[
-    HmPlatform, Mapping[str | tuple[str, ...], EntityDescription]
+    DataPointCategory, Mapping[str | tuple[str, ...], EntityDescription]
 ] = {
-    HmPlatform.LOCK: _LOCK_DESCRIPTIONS_BY_POSTFIX,
+    DataPointCategory.LOCK: _LOCK_DESCRIPTIONS_BY_POSTFIX,
 }
 
 _ENTITY_DESCRIPTION_BY_DEVICE_AND_PARAM: Mapping[
-    HmPlatform, Mapping[tuple[str | tuple[str, ...], str], EntityDescription]
+    DataPointCategory, Mapping[tuple[str | tuple[str, ...], str], EntityDescription]
 ] = {
-    HmPlatform.BINARY_SENSOR: _BINARY_SENSOR_DESCRIPTIONS_BY_DEVICE_AND_PARAM,
-    HmPlatform.NUMBER: _NUMBER_DESCRIPTIONS_BY_DEVICE_AND_PARAM,
-    HmPlatform.SENSOR: _SENSOR_DESCRIPTIONS_BY_DEVICE_AND_PARAM,
+    DataPointCategory.BINARY_SENSOR: _BINARY_SENSOR_DESCRIPTIONS_BY_DEVICE_AND_PARAM,
+    DataPointCategory.NUMBER: _NUMBER_DESCRIPTIONS_BY_DEVICE_AND_PARAM,
+    DataPointCategory.SENSOR: _SENSOR_DESCRIPTIONS_BY_DEVICE_AND_PARAM,
 }
 
 
-_DEFAULT_PLATFORM_DESCRIPTION: Mapping[HmPlatform, EntityDescription] = {
-    HmPlatform.BUTTON: HmButtonEntityDescription(
+_DEFAULT_PLATFORM_DESCRIPTION: Mapping[DataPointCategory, EntityDescription] = {
+    DataPointCategory.BUTTON: HmButtonEntityDescription(
         key="button_default",
         entity_registry_enabled_default=False,
         translation_key="button_press",
     ),
-    HmPlatform.SWITCH: SwitchEntityDescription(
+    DataPointCategory.SWITCH: SwitchEntityDescription(
         key="switch_default",
         device_class=SwitchDeviceClass.SWITCH,
     ),
-    HmPlatform.SELECT: SelectEntityDescription(
+    DataPointCategory.SELECT: SelectEntityDescription(
         key="select_default", entity_category=EntityCategory.CONFIG
     ),
-    HmPlatform.HUB_BUTTON: HmButtonEntityDescription(
+    DataPointCategory.HUB_BUTTON: HmButtonEntityDescription(
         key="hub_button_default",
         entity_registry_enabled_default=False,
         translation_key="button_press",
     ),
-    HmPlatform.HUB_SWITCH: SwitchEntityDescription(
+    DataPointCategory.HUB_SWITCH: SwitchEntityDescription(
         key="hub_switch_default",
         device_class=SwitchDeviceClass.SWITCH,
     ),
@@ -839,15 +839,15 @@ _DEFAULT_PLATFORM_DESCRIPTION: Mapping[HmPlatform, EntityDescription] = {
 
 
 def get_entity_description(
-    hm_entity: HmGenericEntity | GenericHubEntity | CustomEntity,
+    data_point: HmGenericDataPoint | GenericHubDataPoint | CustomDataPoint,
 ) -> EntityDescription | None:
     """Get the entity_description."""
-    if entity_desc := _find_entity_description(hm_entity=hm_entity):
+    if entity_desc := _find_entity_description(data_point=data_point):
         name, translation_key = get_name_and_translation_key(
-            hm_entity=hm_entity, entity_desc=entity_desc
+            data_point=data_point, entity_desc=entity_desc
         )
         enabled_default = (
-            entity_desc.entity_registry_enabled_default if hm_entity.enabled_default else False
+            entity_desc.entity_registry_enabled_default if data_point.enabled_default else False
         )
         return dataclasses.replace(
             entity_desc,
@@ -861,71 +861,71 @@ def get_entity_description(
 
 
 def get_name_and_translation_key(
-    hm_entity: HmGenericEntity | GenericHubEntity | CustomEntity,
+    data_point: HmGenericDataPoint | GenericHubDataPoint | CustomDataPoint,
     entity_desc: EntityDescription,
 ) -> tuple[str | UndefinedType | None, str | None]:
     """Get the name and translation_key."""
-    if isinstance(hm_entity, GenericEntity):
+    if isinstance(data_point, GenericDataPoint):
         if isinstance(entity_desc, HmEntityDescription) and entity_desc.translation_key is None:
             if entity_desc.name_source == HmNameSource.PARAMETER:
-                return None, hm_entity.parameter.lower()
+                return None, data_point.parameter.lower()
             if entity_desc.name_source == HmNameSource.DEVICE_CLASS:
                 return UNDEFINED, None
 
         if entity_desc.translation_key is None:
-            return None, hm_entity.parameter.lower()
+            return None, data_point.parameter.lower()
         return None, entity_desc.translation_key
 
-    if isinstance(hm_entity, CustomEntity):
-        if entity_desc.translation_key is None and hm_entity.name_data.parameter_name:
-            return None, hm_entity.name_data.parameter_name.lower()
+    if isinstance(data_point, CustomDataPoint):
+        if entity_desc.translation_key is None and data_point.name_data.parameter_name:
+            return None, data_point.name_data.parameter_name.lower()
         return None, entity_desc.translation_key
 
-    # custom entities use the customizable name from the CCU WebUI,
+    # custom data points use the customizable name from the CCU WebUI,
     # that does not need to be translated in HA
-    return hm_entity.name, None
+    return data_point.name, None
 
 
 def _find_entity_description(
-    hm_entity: HmGenericEntity | GenericHubEntity | CustomEntity,
+    data_point: HmGenericDataPoint | GenericHubDataPoint | CustomDataPoint,
 ) -> EntityDescription | None:
     """Find the entity_description for platform."""
-    if isinstance(hm_entity, GenericEntity):
-        if entity_desc := _get_entity_description_by_model_and_param(hm_entity=hm_entity):
+    if isinstance(data_point, GenericDataPoint):
+        if entity_desc := _get_entity_description_by_model_and_param(data_point=data_point):
             return entity_desc
 
-        if entity_desc := _get_entity_description_by_param(hm_entity=hm_entity):
+        if entity_desc := _get_entity_description_by_param(data_point=data_point):
             return entity_desc
 
         if (
-            hm_entity.platform == HmPlatform.SENSOR
-            and hm_entity.unit
-            and (entity_desc := _SENSOR_DESCRIPTIONS_BY_UNIT.get(hm_entity.unit))
+            data_point.category == DataPointCategory.SENSOR
+            and data_point.unit
+            and (entity_desc := _SENSOR_DESCRIPTIONS_BY_UNIT.get(data_point.unit))
         ):
             return entity_desc
 
-    if isinstance(hm_entity, CustomEntity):
-        if entity_desc := _get_entity_description_by_model(hm_entity=hm_entity):
+    if isinstance(data_point, CustomDataPoint):
+        if entity_desc := _get_entity_description_by_model(data_point=data_point):
             return entity_desc
 
-        if entity_desc := _get_entity_description_by_postfix(hm_entity=hm_entity):
+        if entity_desc := _get_entity_description_by_postfix(data_point=data_point):
             return entity_desc
 
-    return _DEFAULT_PLATFORM_DESCRIPTION.get(hm_entity.platform)
+    return _DEFAULT_PLATFORM_DESCRIPTION.get(data_point.category)
 
 
 def _get_entity_description_by_model_and_param(
-    hm_entity: GenericEntity,
+    data_point: GenericDataPoint,
 ) -> EntityDescription | None:
     """Get entity_description by model and parameter."""
     if platform_device_and_param_descriptions := _ENTITY_DESCRIPTION_BY_DEVICE_AND_PARAM.get(  # noqa: E501
-        hm_entity.platform
+        data_point.category
     ):
         for data, entity_desc in platform_device_and_param_descriptions.items():
-            if data[1] == hm_entity.parameter and (
+            if data[1] == data_point.parameter and (
                 element_matches_key(
                     search_elements=data[0],
-                    compare_with=hm_entity.device.model,
+                    compare_with=data_point.device.model,
                 )
             ):
                 return entity_desc
@@ -933,36 +933,36 @@ def _get_entity_description_by_model_and_param(
 
 
 def _get_entity_description_by_param(
-    hm_entity: GenericEntity,
+    data_point: GenericDataPoint,
 ) -> EntityDescription | None:
     """Get entity_description by model and parameter."""
-    if platform_param_descriptions := _ENTITY_DESCRIPTION_BY_PARAM.get(hm_entity.platform):
+    if platform_param_descriptions := _ENTITY_DESCRIPTION_BY_PARAM.get(data_point.category):
         for params, entity_desc in platform_param_descriptions.items():
-            if _param_in_list(params=params, parameter=hm_entity.parameter):
+            if _param_in_list(params=params, parameter=data_point.parameter):
                 return entity_desc
     return None
 
 
 def _get_entity_description_by_postfix(
-    hm_entity: CustomEntity,
+    data_point: CustomDataPoint,
 ) -> EntityDescription | None:
     """Get entity_description by model and parameter."""
-    if platform_postfix_descriptions := _ENTITY_DESCRIPTION_BY_POSTFIX.get(hm_entity.platform):
+    if platform_postfix_descriptions := _ENTITY_DESCRIPTION_BY_POSTFIX.get(data_point.category):
         for postfix, entity_desc in platform_postfix_descriptions.items():
-            if _param_in_list(params=postfix, parameter=hm_entity.entity_name_postfix):
+            if _param_in_list(params=postfix, parameter=data_point.data_point_name_postfix):
                 return entity_desc
     return None
 
 
 def _get_entity_description_by_model(
-    hm_entity: HmGenericEntity,
+    data_point: HmGenericDataPoint,
 ) -> EntityDescription | None:
     """Get entity_description by model."""
-    if platform_device_descriptions := _ENTITY_DESCRIPTION_BY_DEVICE.get(hm_entity.platform):
+    if platform_device_descriptions := _ENTITY_DESCRIPTION_BY_DEVICE.get(data_point.category):
         for devices, entity_desc in platform_device_descriptions.items():
             if element_matches_key(
                 search_elements=devices,
-                compare_with=hm_entity.device.model,
+                compare_with=data_point.device.model,
             ):
                 return entity_desc
     return None

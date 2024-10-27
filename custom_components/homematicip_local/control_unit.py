@@ -28,9 +28,9 @@ from hahomematic.const import (
     IP_ANY_V4,
     PORT_ANY,
     BackendSystemEvent,
+    DataPointCategory,
     DeviceFirmwareState,
-    HmPlatform,
-    HomematicEventType,
+    EventType,
     InterfaceEventType,
     InterfaceName,
     Manufacturer,
@@ -38,7 +38,7 @@ from hahomematic.const import (
     SystemInformation,
 )
 from hahomematic.exceptions import BaseHomematicException
-from hahomematic.platforms.entity import CallbackEntity
+from hahomematic.model.data_point import CallbackDataPoint
 from hahomematic.support import check_config
 
 from homeassistant.const import CONF_HOST, CONF_PATH, CONF_PORT
@@ -101,7 +101,7 @@ from .support import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-_EntityT = TypeVar("_EntityT", bound=CallbackEntity)
+_DATA_POINT_T = TypeVar("_DATA_POINT_T", bound=CallbackDataPoint)
 
 
 class BaseControlUnit:
@@ -311,17 +311,19 @@ class ControlUnit(BaseControlUnit):
 
         # Handle event of new device creation in Homematic(IP) Local.
         if system_event == BackendSystemEvent.DEVICES_CREATED:
-            for platform, hm_entities in kwargs["new_entities"].items():
-                if hm_entities and len(hm_entities) > 0:
+            for platform, data_points in kwargs["new_data_points"].items():
+                if data_points and len(data_points) > 0:
                     async_dispatcher_send(
                         self._hass,
-                        signal_new_hm_entity(entry_id=self._entry_id, platform=platform),
-                        hm_entities,
+                        signal_new_data_point(entry_id=self._entry_id, platform=platform),
+                        data_points,
                     )
             for channel_events in kwargs["new_channel_events"]:
                 async_dispatcher_send(
                     self._hass,
-                    signal_new_hm_entity(entry_id=self._entry_id, platform=HmPlatform.EVENT),
+                    signal_new_data_point(
+                        entry_id=self._entry_id, platform=DataPointCategory.EVENT
+                    ),
                     channel_events,
                 )
             self._async_add_virtual_remotes_to_device_registry()
@@ -330,24 +332,22 @@ class ControlUnit(BaseControlUnit):
                 self._hass.create_task(target=self._scheduler.init())
 
             # Handle event of new hub entity creation in Homematic(IP) Local.
-            for platform, hm_hub_entities in kwargs["new_hub_entities"].items():
-                if hm_hub_entities and len(hm_hub_entities) > 0:
+            for platform, hub_data_points in kwargs["new_hub_data_points"].items():
+                if hub_data_points and len(hub_data_points) > 0:
                     async_dispatcher_send(
                         self._hass,
-                        signal_new_hm_entity(entry_id=self._entry_id, platform=platform),
-                        hm_hub_entities,
+                        signal_new_data_point(entry_id=self._entry_id, platform=platform),
+                        hub_data_points,
                     )
             return
         return
 
     @callback
-    def _async_homematic_callback(
-        self, hm_event_type: HomematicEventType, event_data: dict[str, Any]
-    ) -> None:
+    def _async_homematic_callback(self, event_type: EventType, event_data: dict[str, Any]) -> None:
         """Execute the callback used for device related events."""
 
         interface_id = event_data[EVENT_INTERFACE_ID]
-        if hm_event_type == HomematicEventType.INTERFACE:
+        if event_type == EventType.INTERFACE:
             interface_event_type = event_data[EVENT_TYPE]
             issue_id = f"{interface_event_type}-{interface_id}"
             event_data = cast(dict[str, Any], INTERFACE_EVENT_SCHEMA(event_data))
@@ -418,14 +418,14 @@ class ControlUnit(BaseControlUnit):
             if device_entry := self._async_get_device_entry(device_address=device_address):
                 name = device_entry.name_by_user or device_entry.name
                 event_data.update({EVENT_DEVICE_ID: device_entry.id, EVENT_NAME: name})
-            if hm_event_type in (HomematicEventType.IMPULSE, HomematicEventType.KEYPRESS):
+            if event_type in (EventType.IMPULSE, EventType.KEYPRESS):
                 event_data = cleanup_click_event_data(event_data=event_data)
                 if is_valid_event(event_data=event_data, schema=CLICK_EVENT_SCHEMA):
                     self._hass.bus.fire(
-                        event_type=hm_event_type.value,
+                        event_type=event_type.value,
                         event_data=event_data,
                     )
-            elif hm_event_type == HomematicEventType.DEVICE_AVAILABILITY:
+            elif event_type == EventType.DEVICE_AVAILABILITY:
                 parameter = event_data[EVENT_PARAMETER]
                 unavailable = event_data[EVENT_VALUE]
                 if parameter in (Parameter.STICKY_UN_REACH, Parameter.UN_REACH):
@@ -444,10 +444,10 @@ class ControlUnit(BaseControlUnit):
                         schema=DEVICE_AVAILABILITY_EVENT_SCHEMA,
                     ):
                         self._hass.bus.fire(
-                            event_type=hm_event_type.value,
+                            event_type=event_type.value,
                             event_data=event_data,
                         )
-            elif hm_event_type == HomematicEventType.DEVICE_ERROR:
+            elif event_type == EventType.DEVICE_ERROR:
                 error_parameter = event_data[EVENT_PARAMETER]
                 if error_parameter in FILTER_ERROR_EVENT_PARAMETERS:
                     return
@@ -479,7 +479,7 @@ class ControlUnit(BaseControlUnit):
                 )
                 if is_valid_event(event_data=event_data, schema=DEVICE_ERROR_EVENT_SCHEMA):
                     self._hass.bus.fire(
-                        event_type=hm_event_type.value,
+                        event_type=event_type.value,
                         event_data=event_data,
                     )
 
@@ -506,34 +506,34 @@ class ControlUnit(BaseControlUnit):
 
         await self._scheduler.fetch_sysvars()
 
-    def get_new_entities(
+    def get_new_data_points(
         self,
-        entity_type: type[_EntityT] | UnionType,
-    ) -> tuple[_EntityT, ...]:
-        """Return all entities by type."""
-        platform = (
-            entity_type.__args__[0].default_platform()
-            if isinstance(entity_type, UnionType)
-            else entity_type.default_platform()
+        data_point_type: type[_DATA_POINT_T] | UnionType,
+    ) -> tuple[_DATA_POINT_T, ...]:
+        """Return all data points by type."""
+        category = (
+            data_point_type.__args__[0].default_category()
+            if isinstance(data_point_type, UnionType)
+            else data_point_type.default_category()
         )
         return cast(
-            tuple[_EntityT, ...],
-            self.central.get_entities(
-                platform=platform,
+            tuple[_DATA_POINT_T, ...],
+            self.central.get_data_points(
+                category=category,
                 exclude_no_create=True,
                 registered=False,
             ),
         )
 
-    def get_new_hub_entities(
+    def get_new_hub_data_points(
         self,
-        entity_type: type[_EntityT],
-    ) -> tuple[_EntityT, ...]:
-        """Return all entities by type."""
+        data_point_type: type[_DATA_POINT_T],
+    ) -> tuple[_DATA_POINT_T, ...]:
+        """Return all data points by type."""
         return cast(
-            tuple[_EntityT, ...],
-            self.central.get_hub_entities(
-                platform=entity_type.default_platform(),
+            tuple[_DATA_POINT_T, ...],
+            self.central.get_hub_data_points(
+                category=data_point_type.default_category(),
                 registered=False,
             ),
         )
@@ -779,9 +779,9 @@ class HmScheduler:
         )
 
 
-def signal_new_hm_entity(entry_id: str, platform: HmPlatform) -> str:
+def signal_new_data_point(entry_id: str, platform: DataPointCategory) -> str:
     """Gateway specific event to signal new device."""
-    return f"{DOMAIN}-new-entity-{entry_id}-{platform.value}"
+    return f"{DOMAIN}-new-data-point-{entry_id}-{platform.value}"
 
 
 async def validate_config_and_get_system_information(
