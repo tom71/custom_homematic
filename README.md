@@ -1,13 +1,13 @@
 # custom_homematic
 
-Homematic(IP) Integration for Home Assistant
+Homematic(IP) [Integration for Home Assistant](https://www.home-assistant.io/getting-started/concepts-terminology/#integrations)
 
 [Installation](https://github.com/danielperna84/custom_homematic/wiki/Installation)
-
 [Alternative Installation by J. Maus](https://github.com/jens-maus/RaspberryMatic/wiki/HomeAssistant-Integration)
 
 [Wiki with additional information](https://github.com/danielperna84/hahomematic/wiki)
-Please support the community by adding more valuable information to the wiki.delete_device
+Please support the community by adding more valuable information to the wiki.
+
 # ISSUES and DISCUSSIONS
 
 Please report issues in [hahomamatic repo](https://github.com/danielperna84/hahomematic/issues).
