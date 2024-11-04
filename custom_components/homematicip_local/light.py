@@ -83,7 +83,7 @@ async def async_setup_entry(
     platform.async_register_entity_service(
         HmipLocalServices.LIGHT_SET_ON_TIME,
         {
-            vol.Required(ATTR_ON_TIME): vol.All(vol.Coerce(int), vol.Range(min=0, max=8580000)),
+            vol.Required(ATTR_ON_TIME): vol.All(vol.Coerce(int), vol.Range(min=-1, max=8580000)),
         },
         "async_set_on_time",
     )
@@ -233,4 +233,4 @@ class HaHomematicLight(HaHomematicGenericRestoreEntity[CustomDpDimmer], LightEnt
     @callback
     def async_set_on_time(self, on_time: float) -> None:
         """Set the on time of the light."""
-        self._data_point.set_on_time(on_time=on_time)
+        self._data_point.set_timer_on_time(on_time=on_time)
