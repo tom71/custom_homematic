@@ -24,9 +24,8 @@ DEFAULT_SYSVAR_SCAN_ENABLED: Final = True
 DEFAULT_SYS_SCAN_INTERVAL: Final = 30
 DEFAULT_UN_IGNORE: Final[list[str]] = []
 
-LEARN_MORE_URL_XMLRPC_SERVER_RECEIVES_NO_EVENTS: Final = "https://github.com/danielperna84/custom_homematic#what-is-the-meaning-of-xmlrpc-server-received-no-events"
-LEARN_MORE_URL_PONG_MISMATCH: Final = "https://github.com/danielperna84/custom_homematic#what-is-the-meaning-of-pingpong-mismatch-on-interface"
-
+LEARN_MORE_URL_XMLRPC_SERVER_RECEIVES_NO_EVENTS: Final = "https://github.com/danielperna84/custom_homematic?tab=readme-ov-file#what-is-the-meaning-of-xmlrpc-server-received-no-events--xmlrpc-server-empf%C3%A4ngt-keine-ereignisse"
+LEARN_MORE_URL_PONG_MISMATCH: Final = "https://github.com/danielperna84/custom_homematic#what-is-the-meaning-of-pending-pong-mismatch-on-interface--austehende-pong-ereignisse-auf-interface"
 
 CONF_ADVANCED_CONFIG: Final = "advanced_config"
 CONF_CALLBACK_HOST: Final = "callback_host"
