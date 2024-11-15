@@ -3,20 +3,19 @@
   "name": "Homematic(IP) Local",
   "codeowners": ["@danielperna84", "@SukramJ"],
   "config_flow": true,
-  "dependencies": [],
   "documentation": "https://github.com/danielperna84/custom_homematic",
   "homekit": {},
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/danielperna84/hahomematic/issues",
   "loggers": ["hahomematic"],
-  "requirements": ["hahomematic==2024.11.0"],
+  "requirements": ["hahomematic==2024.11.1"],
   "ssdp": [
     {
       "manufacturer": "EQ3",
       "manufacturerURL": "http://www.homematic.com"
     }
   ],
-  "version": "1.70.0",
+  "version": "1.71.0",
   "zeroconf": []
 }
