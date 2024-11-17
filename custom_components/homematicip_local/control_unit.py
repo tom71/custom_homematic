@@ -55,6 +55,7 @@ from .const import (
     CONF_JSON_PORT,
     CONF_LISTEN_ON_ALL_IP,
     CONF_MQTT_ENABLED,
+    CONF_MQTT_PREFIX,
     CONF_PROGRAM_SCAN_ENABLED,
     CONF_SYS_SCAN_INTERVAL,
     CONF_SYSVAR_SCAN_ENABLED,
@@ -68,6 +69,7 @@ from .const import (
     DEFAULT_ENABLE_SYSTEM_NOTIFICATIONS,
     DEFAULT_LISTEN_ON_ALL_IP,
     DEFAULT_MQTT_ENABLED,
+    DEFAULT_MQTT_PREFIX,
     DEFAULT_PROGRAM_SCAN_ENABLED,
     DEFAULT_SYS_SCAN_INTERVAL,
     DEFAULT_SYSVAR_SCAN_ENABLED,
@@ -177,7 +179,7 @@ class BaseControlUnit:
                 InterfaceConfig(
                     central_name=self._instance_name,
                     interface=Interface(interface_name),
-                    port=interface[CONF_PORT],
+                    port=interface.get(CONF_PORT),
                     remote_path=interface.get(CONF_PATH),
                 )
             )
@@ -221,8 +223,7 @@ class ControlUnit(BaseControlUnit):
             hass=self._hass,
             control_unit=self,
         )
-        if control_config.mqtt_enabled:
-            self._mqtt_consumer: Final = MQTTConsumer(hass=self._hass)
+        self._mqtt_consumer: MQTTConsumer | None = None
 
     async def start_central(self) -> None:
         """Start the central unit."""
@@ -236,12 +237,15 @@ class ControlUnit(BaseControlUnit):
         await super().start_central()
         self._async_add_central_to_device_registry()
         if self.config.mqtt_enabled:
-            await self._mqtt_consumer.subscribe(central=self._central)
+            self._mqtt_consumer = MQTTConsumer(
+                hass=self._hass, central=self._central, mqtt_prefix=self.config.mqtt_prefix
+            )
+            await self._mqtt_consumer.subscribe()
 
     async def stop_central(self, *args: Any) -> None:
         """Stop the central unit."""
-        if self.config.mqtt_enabled:
-            self._mqtt_consumer.unsubscribe(central=self._central)
+        if self._mqtt_consumer:
+            self._mqtt_consumer.unsubscribe()
         if self._scheduler.initialized:
             self._scheduler.de_init()
 
@@ -605,7 +609,6 @@ class ControlConfig:
 
         # interface_config
         self.interface_config = data.get(CONF_INTERFACE, {})
-
         # advanced_config
         advanced_config = data.get(CONF_ADVANCED_CONFIG, {})
         self.enable_system_notifications = advanced_config.get(
@@ -620,11 +623,12 @@ class ControlConfig:
         self.sys_scan_interval: Final = advanced_config.get(
             CONF_SYS_SCAN_INTERVAL, DEFAULT_SYS_SCAN_INTERVAL
         )
-        self.mqtt_enabled: Final = advanced_config.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED)
 
         self.listen_on_all_ip = advanced_config.get(
             CONF_LISTEN_ON_ALL_IP, DEFAULT_LISTEN_ON_ALL_IP
         )
+        self.mqtt_enabled: Final = advanced_config.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED)
+        self.mqtt_prefix: Final = advanced_config.get(CONF_MQTT_PREFIX, DEFAULT_MQTT_PREFIX)
         self.un_ignore: Final = advanced_config.get(CONF_UN_IGNORE, DEFAULT_UN_IGNORE)
 
     def check_config(self) -> None:

@@ -11,7 +11,8 @@ from homeassistant.const import Platform
 
 DOMAIN: Final = "homematicip_local"
 HMIP_LOCAL_MIN_HA_VERSION: Final = "2024.10.0dev0"
-HMIP_LOCAL_HAHOMEMATIC_VERSION: Final = "2024.11.1"
+HMIP_LOCAL_HAHOMEMATIC_VERSION: Final = "2024.11.2"
+ENABLE_EXPERIMENTAL_FEATURES: Final = False
 
 DEFAULT_DEVICE_FIRMWARE_CHECK_ENABLED: Final = True
 DEFAULT_DEVICE_FIRMWARE_CHECK_INTERVAL: Final = 21600  # 6h
@@ -20,6 +21,7 @@ DEFAULT_DEVICE_FIRMWARE_UPDATING_CHECK_INTERVAL: Final = 300  # 5m
 DEFAULT_ENABLE_SYSTEM_NOTIFICATIONS: Final = True
 DEFAULT_LISTEN_ON_ALL_IP: Final = False
 DEFAULT_MQTT_ENABLED: Final = False
+DEFAULT_MQTT_PREFIX: Final = ""
 DEFAULT_PROGRAM_SCAN_ENABLED: Final = True
 DEFAULT_SYSVAR_SCAN_ENABLED: Final = True
 DEFAULT_SYS_SCAN_INTERVAL: Final = 30
@@ -39,6 +41,7 @@ CONF_INTERFACE_ID: Final = "interface_id"
 CONF_JSON_PORT: Final = "json_port"
 CONF_LISTEN_ON_ALL_IP: Final = "listen_on_all_ip"
 CONF_MQTT_ENABLED: Final = "mqtt_enabled"
+CONF_MQTT_PREFIX: Final = "mqtt_prefix"
 CONF_PROGRAM_SCAN_ENABLED: Final = "program_scan_enabled"
 CONF_SUBTYPE: Final = "subtype"
 CONF_SYSVAR_SCAN_ENABLED: Final = "sysvar_scan_enabled"
