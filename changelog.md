@@ -1,7 +1,7 @@
-# Version 1.71.0 (2024-11-18)
+# Version 1.71.0 (2024-11-19)
 
 ## What's Changed
-- Bump hahomematic to 2024.11.4
+- Bump hahomematic to 2024.11.6
   - Add basic support for json clients
   - Add data_point_path event
   - Add getDeviceDescription, getParamsetDescription, listDevices, getValue, setValue, getParamset, putParamset to json_rpc
@@ -15,13 +15,16 @@
   - Allow empty port for some interfaces
   - Do reconnect/reload only for affected interfaces
   - Extend DP_KEY with interface_id
+  - Fix returned version of client
   - Ignore unknown interfaces
+  - Improve store tmp value
   - Maintain data_cache by interface
   - Reduce MAX_CACHE_AGE to 15s
   - Remove clients for not available interfaces
   - Rename event to data_point_event
   - Run periodic tasks with an individual interval
-  - Store tmp value for polling client data points
+  - Store temporary value for polling client data points
+  - Store temporary value for sysvar data points
 - Add mqtt support
 - Add new option to UI (but disabled)
 - Remove sysvar/program refresh from scheduler
