@@ -5,7 +5,7 @@ blueprint:
     to your configured minimum duration for long press. This can be configured in
     your CCU. Tested with HmIP-WRC6. Should work with other device too.
   domain: automation
-  source_url: https://github.com/danielperna84/custom_homematic/blob/789b37f30e07eefe9edefae6d774590e17f21bf4/blueprints/automation/homematicip_local-actions-for-6-button.yaml
+  source_url: https://github.com/tom71/custom_homematic/blob/52885678e398eba5a74b10f4a31b0aef25ab3659/blueprints/automation/homematicip_local-actions-for-6-button.yaml  
   input:
     remote:
       name: 6-Button Device
