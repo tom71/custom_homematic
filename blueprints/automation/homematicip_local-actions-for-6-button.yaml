@@ -1,14 +1,11 @@
 blueprint:
-  name: Actions for 6-Button Homematic(IP) device
-  description:
-    When a button is pressed, the defined actions will be executed. Please
+  name: Actions for 6-Button Homematic(IP) device with Rel
+  description: When a button is pressed, the defined actions will be executed. Please
     keep in mind, that long-press actions might be executed multiple times, according
     to your configured minimum duration for long press. This can be configured in
-    your CCU.
-    Tested with HmIP-WRC6. Should work with other device too.
-    v2022-10-28
+    your CCU. Tested with HmIP-WRC6. Should work with other device too.
   domain: automation
-  source_url: https://github.com/danielperna84/custom_homematic/blob/devel/blueprints/automation/homematicip_local-actions-for-6-button.yaml
+  source_url: https://github.com/danielperna84/custom_homematic/blob/789b37f30e07eefe9edefae6d774590e17f21bf4/blueprints/automation/homematicip_local-actions-for-6-button.yaml
   input:
     remote:
       name: 6-Button Device
@@ -16,6 +13,7 @@ blueprint:
       selector:
         device:
           integration: homematicip_local
+          multiple: false
     action_left_top_short:
       name: Action
       description: Left-Top-Button, Short Press
@@ -52,6 +50,12 @@ blueprint:
       default: []
       selector:
         action: {}
+    action_left_middle_long_release:
+      name: Action
+      description: Left-Middle-Button, Long Press Release
+      default: []
+      selector:
+        action: {}
     action_right_middle_short:
       name: Action
       description: Right-Middle-Button, Short Press
@@ -61,6 +65,12 @@ blueprint:
     action_right_middle_long:
       name: Action
       description: Right-Middle-Button, Long Press
+      default: []
+      selector:
+        action: {}
+    action_right_middle_long_release:
+      name: Action
+      description: Right-Middle-Button, Long Press Release
       default: []
       selector:
         action: {}
@@ -89,60 +99,82 @@ blueprint:
       selector:
         action: {}
 trigger:
-  - platform: event
-    event_type: homematic.keypress
-    event_data:
-      device_id: !input "remote"
+- platform: event
+  event_type: homematic.keypress
+  event_data:
+    device_id: !input remote
 condition: []
 action:
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_short' and trigger.event.data.subtype  == 1 }}"
-        sequence: !input "action_left_top_short"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_long' and trigger.event.data.subtype  == 1 }}"
-        sequence: !input "action_left_top_long"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_short' and trigger.event.data.subtype  == 2 }}"
-        sequence: !input "action_right_top_short"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_long' and trigger.event.data.subtype  == 2 }}"
-        sequence: !input "action_right_top_long"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_short' and trigger.event.data.subtype  == 3 }}"
-        sequence: !input "action_left_middle_short"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_long' and trigger.event.data.subtype  == 3 }}"
-        sequence: !input "action_left_middle_long"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_short' and trigger.event.data.subtype  == 4 }}"
-        sequence: !input "action_right_middle_short"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_long' and trigger.event.data.subtype  == 4 }}"
-        sequence: !input "action_right_middle_long"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_short' and trigger.event.data.subtype  == 5 }}"
-        sequence: !input "action_left_bottom_short"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_long' and trigger.event.data.subtype  == 5 }}"
-        sequence: !input "action_left_bottom_long"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_short' and trigger.event.data.subtype  == 6 }}"
-        sequence: !input "action_right_bottom_short"
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.data.type  == 'press_long' and trigger.event.data.subtype  == 6 }}"
-        sequence: !input "action_right_bottom_long"
+- choose:
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_short'' and trigger.event.data.subtype  ==
+        1 }}'
+    sequence: !input action_left_top_short
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_long'' and trigger.event.data.subtype  ==
+        1 }}'
+    sequence: !input action_left_top_long
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_short'' and trigger.event.data.subtype  ==
+        2 }}'
+    sequence: !input action_right_top_short
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_long'' and trigger.event.data.subtype  ==
+        2 }}'
+    sequence: !input action_right_top_long
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_short'' and trigger.event.data.subtype  ==
+        3 }}'
+    sequence: !input action_left_middle_short
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_long'' and trigger.event.data.subtype  ==
+        3 }}'
+    sequence: !input action_left_middle_long
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_long_release'' and trigger.event.data.subtype  ==
+        3 }}'
+    sequence: !input action_left_middle_long_release
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_short'' and trigger.event.data.subtype  ==
+        4 }}'
+    sequence: !input action_right_middle_short
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_long'' and trigger.event.data.subtype  ==
+        4 }}'
+    sequence: !input action_right_middle_long
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_long_release'' and trigger.event.data.subtype  ==
+        4 }}'
+    sequence: !input action_right_middle_long_release
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_short'' and trigger.event.data.subtype  ==
+        5 }}'
+    sequence: !input action_left_bottom_short
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_long'' and trigger.event.data.subtype  ==
+        5 }}'
+    sequence: !input action_left_bottom_long
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_short'' and trigger.event.data.subtype  ==
+        6 }}'
+    sequence: !input action_right_bottom_short
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.type  == ''press_long'' and trigger.event.data.subtype  ==
+        6 }}'
+    sequence: !input action_right_bottom_long
 mode: parallel
 max: 10
